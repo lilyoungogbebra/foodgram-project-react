@@ -8,7 +8,6 @@ User = get_user_model()
 
 
 class CustomUserAdmin(UserAdmin):
-    '''Кастомная админка.'''
     model = User
     list_display = (
         'username',

@@ -3,11 +3,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 class CustomUserManager(BaseUserManager):
-    '''
-    Кастомный диспетчер пользовательских моделей пользователей, в котором
-    электронная почта является уникальным идентификатором для аутентификации,
-    а не именами пользователей.
-    '''
     def create_user(
             self,
             email,
@@ -16,10 +11,6 @@ class CustomUserManager(BaseUserManager):
             first_name,
             last_name,
             **extra_fields):
-        '''
-        Создать и сохранить пользователя с указанным адресом
-        электронной почты и паролем.
-        '''
         if not email:
             raise ValueError(_('The Email must be set'))
         user = self.model(
@@ -41,10 +32,6 @@ class CustomUserManager(BaseUserManager):
             first_name,
             last_name,
             **extra_fields):
-        '''
-        Создайть и сохранить суперпользователя с указанным адресом
-        электронной почты и паролем.
-        '''
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)

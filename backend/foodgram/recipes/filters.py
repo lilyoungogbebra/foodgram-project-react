@@ -19,7 +19,7 @@ class CustomRecipeFilterSet(filters.FilterSet):
     )
 
     def _bool_filter(self, key, value, queryset, user):
-        '''Фильтрация для ключей.'''
+        '''Фильтрация ключей.'''
         map_dict = {f'{key}__user': user}
         if not user.is_anonymous:
             if value:

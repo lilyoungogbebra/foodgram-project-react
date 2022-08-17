@@ -9,7 +9,7 @@ User = get_user_model()
 
 
 def hex_field_validator(value):
-    '''Проверка на формат HEX.'''
+    '''Проверка формата HEX.'''
     message = (
         'Введите цвет в формате HEX.'
     )
@@ -112,7 +112,7 @@ class Recipe(models.Model):
         Ingredient,
         db_index=True,
         related_name='ingredients_recipes',
-        verbose_name='ингридиент',
+        verbose_name='ингредиент',
         through='RecipeIngredientRelationship'
     )
     tags = models.ManyToManyField(
@@ -170,7 +170,7 @@ class RecipeIngredientRelationship(models.Model):
         Ingredient,
         on_delete=models.CASCADE,
         related_name='ingredient_in_recipe',
-        verbose_name='ингридиент',
+        verbose_name='ингредиент',
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -184,7 +184,7 @@ class RecipeIngredientRelationship(models.Model):
         verbose_name='количество ингредиента в рецепте',
         validators=[MinValueValidator(
             limit_value=1,
-            message='Количество должно быть больше 0.')
+            message='количество должно быть больше 0.')
         ],
     )
 
@@ -199,7 +199,7 @@ class RecipeIngredientRelationship(models.Model):
         ]
 
     def __str__(self):
-        return 'Ингридиент {} в рецепте {}'.format(
+        return 'Ингредиент {} в рецепте {}'.format(
             self.ingredient,
             self.recipe
         )
@@ -264,7 +264,7 @@ class ShoppingUserList(models.Model):
         ]
 
     def __str__(self):
-        return 'У {} в Списке покупок рецепт: {}'.format(
+        return 'У {} в списке покупок рецепт: {}'.format(
             self.user,
             self.recipe
         )

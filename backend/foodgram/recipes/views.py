@@ -19,7 +19,6 @@ class ListRetrieveModelViewSet(
         mixins.ListModelMixin,
         mixins.RetrieveModelMixin,
         viewsets.GenericViewSet):
-    '''Кастомный базовый вьюсет.'''
     pass
 
 
@@ -28,7 +27,6 @@ def post_delete_relationship_user_with_object(
         pk,
         model,
         message):
-    '''Добавление и удаление рецепта в таблице для пользователя.'''
     recipe = get_object_or_404(Recipe, id=pk)
     if request.method == 'POST':
         if model.objects.filter(
@@ -74,7 +72,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
 
     def get_permissions(self):
-        '''Ветвление пермишеннов.'''
+        '''Ветвление пермишенов.'''
         if self.action in ['list', 'retrieve']:
             return (permissions.AllowAny(),)
         return super().get_permissions()

@@ -10,10 +10,6 @@ class RecipeInline(admin.TabularInline):
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    '''
-    Администрирование модели рецепта, вывод названия и автора.
-    Фильтр по автору, названию, тегам.
-    '''
     list_display = (
         'pk',
         'author',
@@ -24,10 +20,6 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = [RecipeInline, ]
 
     def calc_in_users_favorites(self, obj):
-        '''
-        Агрегация количества добавлений конкретного рецепта
-        в избранное пользователями в данный момент.
-        '''
         return FavoritesRecipesUserList.objects.filter(recipe=obj).count()
 
     class Meta:
@@ -35,7 +27,6 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    '''Администрирование модели ингредиента, с фильтром по названию.'''
     list_display = (
         'pk',
         'name',

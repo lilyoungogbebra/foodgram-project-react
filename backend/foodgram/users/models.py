@@ -10,7 +10,6 @@ from .managers import CustomUserManager
 
 
 def username_validator_not_past_me(value):
-    '''Проверка что username не равно me.'''
     message = (
         'В сервисе запрещено использовать '
         'значение \"me\" как имя пользователя.'
@@ -20,9 +19,7 @@ def username_validator_not_past_me(value):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    '''Кастомная модель Юзера.'''
     username_validator = UnicodeUsernameValidator()
-    # Логин
     username = models.CharField(
         'Логин',
         max_length=150,
@@ -36,22 +33,18 @@ class User(AbstractBaseUser, PermissionsMixin):
             'unique': _('A user with that username already exists.'),
         },
     )
-    # Имя
     first_name = models.CharField(
         _('first name'),
         max_length=150,
     )
-    # Фамилия
     last_name = models.CharField(
         _('last name'),
         max_length=150,
     )
-    # Электронная почта
     email = models.EmailField(
         _('email address'),
         max_length=254,
         unique=True)
-    # Пароль
     password = models.CharField(
         _('password'),
         max_length=150,

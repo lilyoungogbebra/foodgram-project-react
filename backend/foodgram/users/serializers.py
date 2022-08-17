@@ -13,7 +13,6 @@ username_validator = UnicodeUsernameValidator()
 
 
 class SetPasswordSerializer(serializers.Serializer):
-    '''Сериалайзер установки пароля.'''
     new_password = serializers.CharField(max_length=150, required=True)
     current_password = serializers.CharField(max_length=150, required=True)
 
@@ -23,9 +22,7 @@ class SetPasswordSerializer(serializers.Serializer):
 
 
 def user_is_subscribed(self, obj):
-    '''Подписан ли текущий пользователь на другого пользователя.'''
     user = self.context['request'].user
-    # Если пользователь не аноним и подписка существует
     if (user.is_anonymous is not True
             and Follow.objects.filter(user=user, following=obj.pk).exists()):
         return True
@@ -33,7 +30,6 @@ def user_is_subscribed(self, obj):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для пользователя.'''
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -48,12 +44,10 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        '''Подписан ли текущий пользователь на другого пользователя.'''
         return user_is_subscribed(self, obj)
 
 
 class NewUserSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для нового пользователя.'''
 
     class Meta:
         model = User
@@ -72,12 +66,10 @@ class NewUserSerializer(serializers.ModelSerializer):
         }
 
     def validate_password(self, value):
-        '''Проверка пароля.'''
         return make_password(value)
 
 
 class SubRecipeSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для вывода полей рецепта в подписках.'''
     class Meta:
         model = Recipe
         fields = (
@@ -89,7 +81,6 @@ class SubRecipeSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionsSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для вывода подписок пользователя.'''
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -108,20 +99,13 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        '''Подписан ли текущий пользователь на другого пользователя.'''
         return user_is_subscribed(self, obj)
 
     def get_recipes_count(self, obj):
-        '''Общее количество рецептов пользователя.'''
         return Recipe.objects.filter(author=obj).count()
 
     def get_recipes(self, obj):
-        '''Получить рецепты пользователя.'''
-        # передан ли параметр recipes_limit,
-        # отвечающий за количество объектов внутри поля
         recipes_limit = self.context['request'].GET.get('recipes_limit')
-        # водим рецепты интересующего пользователя,
-        # отталкиваясь от параметра recipes_limit, если он есть
         interes_user = obj
         if recipes_limit:
             return SubRecipeSerializer(Recipe.objects.filter(
@@ -133,7 +117,6 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    '''Сериализатор для модели Follow.'''
     user = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username',
