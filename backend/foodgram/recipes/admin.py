@@ -20,7 +20,6 @@ class RecipeAdmin(admin.ModelAdmin):
         'name',
         'calc_in_users_favorites',
     )
-    # фильтрация
     list_filter = ('author', 'name', 'tags',)
     inlines = [RecipeInline, ]
 
@@ -43,9 +42,7 @@ class IngredientAdmin(admin.ModelAdmin):
         'measurement_unit'
     )
     ordering = ('pk',)
-    # Добавляем интерфейс для поиска по тексту постов
     search_fields = ('name',)
-    # Добавляем возможность фильтрации по названию
     list_filter = ('name',)
 
 
