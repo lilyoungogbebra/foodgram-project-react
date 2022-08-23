@@ -2,10 +2,10 @@ version: '3.3'
 
 services:
   frontend:
-    image: yanleon/foodgram_frontend:latest
-#    build:
-#      context: ../frontend
-#      dockerfile: Dockerfile
+#    image: yanleon/foodgram_frontend:latest
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -35,10 +35,9 @@ services:
     ports:
       - '80:80'
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
       - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
-      - ../docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
+      - ../docs/:/usr/share/nginx/html/api/docs/
       - static_value:/usr/share/nginx/html/backend_static/
       - media_value:/usr/share/nginx/html/media/
     depends_on:
