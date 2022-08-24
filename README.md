@@ -58,4 +58,5 @@ docker-compose exec web python manage.py createsuperuser
 
 ### Авторы
 Frontend: Yandex Practicum
+
 Backend: lilyoungogbebra (Yan)
