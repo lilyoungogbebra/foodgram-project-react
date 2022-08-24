@@ -11,9 +11,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'kj-gwa9f85m&2*e8x#f-8d@&)&sc^2x4rz)ct6h$21!_*r)hd5'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['51.250.29.141', '127.0.0.1', 'localhost', 'foodgram-practicum.ddns.net']
+ALLOWED_HOSTS = ['51.250.29.141', '127.0.0.1', 'localhost', 'foodgram-practicum.ddns.net', 'web']
 
 
 # Application definition

@@ -19,8 +19,8 @@ services:
       - ./.env
 
   web:
-    image: yanleon/foodgram_backend:latest
-#    build: ../backend/foodgram
+#    image: yanleon/foodgram_backend:latest
+    build: ../backend/foodgram
     restart: always
     volumes:
       - static_value:/app/backend_static/
@@ -35,7 +35,7 @@ services:
     ports:
       - '80:80'
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static_value:/usr/share/nginx/html/backend_static/
