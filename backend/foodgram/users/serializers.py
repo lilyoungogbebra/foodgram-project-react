@@ -23,11 +23,10 @@ class SetPasswordSerializer(serializers.Serializer):
 
 def user_is_subscribed(self, obj):
     user = self.context['request'].user
-    if (user.is_anonymous is not True
-            and Follow.objects.filter(user=user, following=obj.pk).exists()):
-        return True
-    return False
-
+    return (
+        user.is_authenticated
+        and obj.subscribing.filter(user=user).exists()
+    )
 
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()

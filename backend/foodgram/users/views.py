@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.hashers import check_password, make_password
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .models import Follow
 from .pagination import UserPagination
@@ -20,9 +20,13 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_permissions(self):
-        if self.action == 'list' or self.action == 'create':
-            return (permissions.AllowAny(),)
-        return super().get_permissions()
+        if self.action == 'create':
+            permission_classes = [IsAuthenticated]
+        elif self.action == 'actioned':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [AllowAny]
+        return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -37,20 +41,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def set_password(self, request):
-        user = get_object_or_404(User, email=request.user.email)
         serializer = SetPasswordSerializer(data=request.data)
-        if serializer.is_valid():
-            if check_password(request.data['current_password'], user.password):
-                new_password = make_password(request.data['new_password'])
-                user.password = new_password
-                user.save()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response(
-                    {'current_password': 'Вы ввели неверный пароль'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid(raise_exception=True):
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def subscriptions(self, request):
@@ -98,7 +91,7 @@ class UserViewSet(viewsets.ModelViewSet):
             following=interes_user,
             user=request.user
         )
-        if subscribe:
+        if subscribe.exists():
             subscribe.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
