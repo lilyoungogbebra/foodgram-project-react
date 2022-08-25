@@ -28,6 +28,7 @@ def user_is_subscribed(self, obj):
         and obj.subscribing.filter(user=user).exists()
     )
 
+
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
 

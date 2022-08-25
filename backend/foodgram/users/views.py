@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .models import Follow
 from .pagination import UserPagination
@@ -43,7 +43,13 @@ class UserViewSet(viewsets.ModelViewSet):
     def set_password(self, request):
         serializer = SetPasswordSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response( 
+                {'current_password': 'Вы ввели неверный пароль'}, 
+                status=status.HTTP_400_BAD_REQUEST 
+            ) 
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
     @action(detail=False, methods=['get'])
     def subscriptions(self, request):
