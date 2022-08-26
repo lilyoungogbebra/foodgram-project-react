@@ -4,11 +4,12 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-from users.serializers import UserSerializer
 
-from .models import (FavoritesRecipesUserList, Ingredient, Recipe,
+from .utils import create_relationship_ingredient_recipe
+from users.serializers import UserSerializer
+from .models import (Ingredient, Recipe,
                      RecipeIngredientRelationship, RecipeTagRelationship,
-                     ShoppingUserList, Tag)
+                     Tag)
 
 User = get_user_model()
 
@@ -74,23 +75,17 @@ class RecipeSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-    def get_is_favorited(self, obj):
+    def get_is_favorited(self):
         '''Проверка, находится ли обьект в избранном.'''
         user = self.context['request'].user
-        if (user != AnonymousUser()
-                and FavoritesRecipesUserList.objects.filter(
-                    user=user, recipe=obj.pk).exists()):
+        if user != AnonymousUser.is_authenticated:
             return True
-        return False
 
     def get_is_in_shopping_cart(self, obj):
         '''Проверка, находится ли обьект в списке покупок.'''
         user = self.context['request'].user
-        if (user != AnonymousUser()
-                and ShoppingUserList.objects.filter(
-                    user=user, recipe=obj.pk).exists()):
+        if user != AnonymousUser.is_authenticated:
             return True
-        return False
 
 
 class RecipeIngredientAmountCreateUpdateSerializer(
@@ -165,36 +160,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         '''На вывод возвращаем рецепт через другой сериалайзер.'''
         return RecipeSerializer(instance, context=self.context).data
 
-    def validate(self, data):
-        '''Валидация на уровне объекта.'''
-        if 'tags' in data:
-            tags = data.get('tags')
-            all_tags_request = len(tags)
-            uniq_tags = set()
-            for tag in tags:
-                uniq_tags.add(tag.pk)
-            if len(uniq_tags) != all_tags_request:
-                raise serializers.ValidationError(
-                    'теги должны быть уникальными.'
-                )
-        if 'ingredient_in_recipe' in data:
-            ingredients = data.get('ingredient_in_recipe')
-            all_ingredients_request = len(ingredients)
-            uniq_ingredients = set()
-            for ingredient in ingredients:
-                id = ingredient['id']
-                amount = ingredient['amount']
-                if amount <= 0:
-                    raise serializers.ValidationError(
-                        'минимальное количество ингредиента: 1.'
-                    )
-                uniq_ingredients.add(id)
-            if len(uniq_ingredients) != all_ingredients_request:
-                raise serializers.ValidationError(
-                    'Ингридиенты должны быть уникальными.'
-                )
-        return data
-
     def create(self, validated_data):
         '''Создания рецепта.'''
         with transaction.atomic():
@@ -208,29 +173,3 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             create_relationship_tag_recipe(tags, recipe)
             create_relationship_ingredient_recipe(ingredients, recipe)
         return recipe
-
-    def update(self, instance, validated_data):
-        '''Обновления рецепта.'''
-        with transaction.atomic():
-            current_obj_recipe = get_object_or_404(Recipe, id=instance.pk)
-            if validated_data.get('ingredient_in_recipe'):
-                model = RecipeIngredientRelationship
-                records_ingredient_recipe = model.objects.filter(
-                    recipe=current_obj_recipe
-                )
-                for record in records_ingredient_recipe:
-                    record.delete()
-                ingredients = validated_data.pop('ingredient_in_recipe')
-                create_relationship_ingredient_recipe(
-                    ingredients,
-                    current_obj_recipe
-                )
-            if validated_data.get('tags'):
-                records_tag_recipe = RecipeTagRelationship.objects.filter(
-                    recipe=current_obj_recipe
-                )
-                for record in records_tag_recipe:
-                    record.delete()
-                tags = validated_data.pop('tags')
-                create_relationship_tag_recipe(tags, current_obj_recipe)
-        return super().update(instance, validated_data)

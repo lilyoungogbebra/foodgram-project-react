@@ -2,10 +2,11 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from .mixins import ListRetrieveModelViewSet
 from .filters import CustomRecipeFilterSet, IngredientSearchFilter
 from .models import (FavoritesRecipesUserList, Ingredient, Recipe,
                      ShoppingUserList, Tag)
@@ -13,13 +14,6 @@ from .pagination import RecipePagination
 from .permissions import AdminAllOnlyAuthorPermission
 from .serializers import (IngredientSerializer, RecipeCreateUpdateSerializer,
                           RecipeSerializer, TagSerializer)
-
-
-class ListRetrieveModelViewSet(
-        mixins.ListModelMixin,
-        mixins.RetrieveModelMixin,
-        viewsets.GenericViewSet):
-    pass
 
 
 def post_delete_relationship_user_with_object(
@@ -39,18 +33,13 @@ def post_delete_relationship_user_with_object(
             recipe=recipe,
             user=request.user
         )
-        text = {
-            'id': recipe.id,
-            'name': recipe.name,
-            'image': str(recipe.image),
-            'cooking_time': recipe.cooking_time
-        }
-        return Response(text, status=status.HTTP_201_CREATED)
+        serializer = RecipeSerializer()
+        return Response(serializer.to_representation(instance=recipe), status=status.HTTP_201_CREATED)
     obj_recipe = model.objects.filter(
         recipe=recipe,
         user=request.user
     )
-    if obj_recipe:
+    if obj_recipe.exists():
         obj_recipe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     return Response(

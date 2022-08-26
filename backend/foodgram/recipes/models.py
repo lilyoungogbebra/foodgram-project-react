@@ -1,20 +1,10 @@
-import re
-
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, validate_slug
 from django.db import models
 
+from .validators import hex_field_validator
+
 User = get_user_model()
-
-
-def hex_field_validator(value):
-    '''Проверка формата HEX.'''
-    message = (
-        'Введите цвет в формате HEX.'
-    )
-    if not re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', value):
-        raise ValidationError(message)
 
 
 class Ingredient(models.Model):
