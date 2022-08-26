@@ -15,7 +15,7 @@ def create_relationship_ingredient_recipe(ingredients, recipe):
                 + 'ингредиента не существует в нашей бд.'
             )
             raise serializers.is_valid(
-                {'ingredients': [f'{message}']} 
+                {'ingredients': [f'{message}']}
             )
         new_ingredient = RecipeIngredientRelationship(
             recipe=recipe,

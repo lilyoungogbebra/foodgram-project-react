@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .mixins import ListRetrieveModelViewSet
-from .filters import CustomRecipeFilterSet, IngredientSearchFilter
+from .filters import IngredientSearchFilter, CustomRecipeFilterSet
 from .models import (FavoritesRecipesUserList, Ingredient, Recipe,
                      ShoppingUserList, Tag)
 from .pagination import RecipePagination
@@ -34,7 +34,8 @@ def post_delete_relationship_user_with_object(
             user=request.user
         )
         serializer = RecipeSerializer()
-        return Response(serializer.to_representation(instance=recipe), status=status.HTTP_201_CREATED)
+        return Response(serializer.to_representation(instance=recipe),
+                        status=status.HTTP_201_CREATED)
     obj_recipe = model.objects.filter(
         recipe=recipe,
         user=request.user
