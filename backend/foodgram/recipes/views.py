@@ -6,8 +6,8 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from .filters import CustomRecipeFilterSet, IngredientSearchFilter
 from .mixins import ListRetrieveModelViewSet
-from .filters import IngredientSearchFilter, CustomRecipeFilterSet
 from .models import (FavoritesRecipesUserList, Ingredient, Recipe,
                      ShoppingUserList, Tag)
 from .pagination import RecipePagination

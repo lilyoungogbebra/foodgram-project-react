@@ -4,11 +4,9 @@ from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from .utils import create_relationship_ingredient_recipe
+from .models import (Ingredient, Recipe, RecipeIngredientRelationship,
+                     RecipeTagRelationship, Tag)
 from users.serializers import UserSerializer
-from .models import (Ingredient, Recipe,
-                     RecipeIngredientRelationship, RecipeTagRelationship,
-                     Tag)
 
 User = get_user_model()
 
@@ -79,12 +77,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         if user != AnonymousUser.is_authenticated:
             return True
+        return False
 
     def get_is_in_shopping_cart(self, obj):
         '''Проверка, находится ли обьект в списке покупок.'''
         user = self.context['request'].user
         if user != AnonymousUser.is_authenticated:
             return True
+        return False
 
 
 class RecipeIngredientAmountCreateUpdateSerializer(
