@@ -29,7 +29,7 @@ class CustomRecipeFilterSet(filters.FilterSet):
         return queryset
 
     def filter_is_favorited(self, queryset, name, value):
-        '''Рецепты из избранного.'''
+        '''Рецепты избранного.'''
         key = 'favorit_recipe'
         return self._bool_filter(key, value, queryset, user=self.request.user)
 
