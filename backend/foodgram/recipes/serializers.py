@@ -102,10 +102,10 @@ class RecipeIngredientAmountCreateUpdateSerializer(
         )
 
 
-def create_relationship_tag_recipe(tags, recipe): 
-    '''Наполнение связующей таблицы тегами и рецептами.''' 
-    for tag in tags: 
-        RecipeTagRelationship.objects.create(tag=tag, recipe=recipe) 
+def create_relationship_tag_recipe(tags, recipe):
+    '''Наполнение связующей таблицы тегами и рецептами.'''
+    for tag in tags:
+        RecipeTagRelationship.objects.create(tag=tag, recipe=recipe)
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
