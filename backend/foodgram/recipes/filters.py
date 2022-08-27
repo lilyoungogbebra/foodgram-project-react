@@ -34,7 +34,7 @@ class CustomRecipeFilterSet(filters.FilterSet):
         return self._bool_filter(key, value, queryset, user=self.request.user)
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
-        '''Рецепты из покупок.'''
+        '''Рецепты покупок.'''
         key = 'recipe_in_shoplist'
         return self._bool_filter(key, value, queryset, user=self.request.user)
 
