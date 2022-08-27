@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from .models import Follow
+from .utils import user_is_subscribed
 
 User = get_user_model()
 username_validator = UnicodeUsernameValidator()
@@ -19,14 +20,6 @@ class SetPasswordSerializer(serializers.Serializer):
     def validate_new_password(self, value):
         validate_password(value)
         return value
-
-
-def user_is_subscribed(self, obj):
-    user = self.context['request'].user
-    return (
-        user.is_authenticated
-        and obj.subscribing.filter(user=user).exists()
-    )
 
 
 class UserSerializer(serializers.ModelSerializer):

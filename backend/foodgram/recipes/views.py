@@ -1,52 +1,18 @@
 from django.db.models import Sum
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions, status, viewsets
+from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
 from .filters import CustomRecipeFilterSet, IngredientSearchFilter
 from .mixins import ListRetrieveModelViewSet
+from .utils import post_delete_relationship_user_with_object
 from .models import (FavoritesRecipesUserList, Ingredient, Recipe,
                      ShoppingUserList, Tag)
 from .pagination import RecipePagination
 from .permissions import AdminAllOnlyAuthorPermission
 from .serializers import (IngredientSerializer, RecipeCreateUpdateSerializer,
                           RecipeSerializer, TagSerializer)
-
-
-def post_delete_relationship_user_with_object(
-        request,
-        pk,
-        model,
-        message):
-    recipe = get_object_or_404(Recipe, id=pk)
-    if request.method == 'POST':
-        if model.objects.filter(
-                recipe=recipe,
-                user=request.user).exists():
-            return Response(
-                {'errors': f'Рецепт под номером {pk} уже у вас в {message}.'},
-                status=status.HTTP_400_BAD_REQUEST)
-        model.objects.create(
-            recipe=recipe,
-            user=request.user
-        )
-        serializer = RecipeSerializer()
-        return Response(serializer.to_representation(instance=recipe),
-                        status=status.HTTP_201_CREATED)
-    obj_recipe = model.objects.filter(
-        recipe=recipe,
-        user=request.user
-    )
-    if obj_recipe.exists():
-        obj_recipe.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-    return Response(
-        {'errors': f'Рецепта под номером {pk} у вас нет {message}.'},
-        status=status.HTTP_400_BAD_REQUEST
-    )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -60,12 +26,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permissions.IsAuthenticated,
         AdminAllOnlyAuthorPermission,
     )
-
-    def get_permissions(self):
-        '''Ветвление пермишенов.'''
-        if self.action in ['list', 'retrieve']:
-            return (permissions.AllowAny(),)
-        return super().get_permissions()
 
     def get_serializer_class(self):
         '''При создании или обновлении рецепта, выбираем другой сериализатор'''
