@@ -5,9 +5,9 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from .models import (Ingredient, Recipe, RecipeIngredientRelationship,
-                     Tag)
-from users.serializers import UserSerializer
+                     RecipeTagRelationship, Tag)
 from .utils import create_relationship_ingredient_recipe
+from users.serializers import UserSerializer
 
 User = get_user_model()
 
@@ -100,6 +100,12 @@ class RecipeIngredientAmountCreateUpdateSerializer(
             'id',
             'amount',
         )
+
+
+def create_relationship_tag_recipe(tags, recipe): 
+    '''Наполнение связующей таблицы тегами и рецептами.''' 
+    for tag in tags: 
+        RecipeTagRelationship.objects.create(tag=tag, recipe=recipe) 
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):

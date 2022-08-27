@@ -6,13 +6,13 @@ from rest_framework.decorators import action
 
 from .filters import CustomRecipeFilterSet, IngredientSearchFilter
 from .mixins import ListRetrieveModelViewSet
-from .utils import post_delete_relationship_user_with_object
 from .models import (FavoritesRecipesUserList, Ingredient, Recipe,
                      ShoppingUserList, Tag)
 from .pagination import RecipePagination
 from .permissions import AdminAllOnlyAuthorPermission
 from .serializers import (IngredientSerializer, RecipeCreateUpdateSerializer,
                           RecipeSerializer, TagSerializer)
+from .utils import post_delete_relationship_user_with_object
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
