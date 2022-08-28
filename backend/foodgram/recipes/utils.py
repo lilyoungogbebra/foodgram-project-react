@@ -2,8 +2,15 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.response import Response
 
-from .models import Ingredient, Recipe, RecipeIngredientRelationship
+from .models import (Ingredient, Recipe, RecipeIngredientRelationship,
+                     RecipeTagRelationship)
 from .serializers import RecipeSerializer
+
+
+def create_relationship_tag_recipe(tags, recipe):
+    '''Наполнение связующей таблицы тегами и рецептами.'''
+    for tag in tags:
+        RecipeTagRelationship.objects.create(tag=tag, recipe=recipe)
 
 
 def create_relationship_ingredient_recipe(ingredients, recipe):
@@ -17,7 +24,7 @@ def create_relationship_ingredient_recipe(ingredients, recipe):
                 f'Недопустимый первичный ключ \"{cur_id}\" -'
                 + 'ингредиента не существует в нашей бд.'
             )
-            raise serializers.is_valid(
+            raise serializers.ValidationError(
                 {'ingredients': [f'{message}']}
             )
         new_ingredient = RecipeIngredientRelationship(
