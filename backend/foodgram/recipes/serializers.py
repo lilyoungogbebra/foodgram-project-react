@@ -132,8 +132,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         '''Создания рецепта.'''
         with transaction.atomic():
-            ingredients = validated_data.pop('ingredient_in_recipe')
-            tags = validated_data.pop('tags')
             author = self.context.get('request').user
             recipe = Recipe.objects.create(
                 author=author,
