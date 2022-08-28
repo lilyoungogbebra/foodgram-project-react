@@ -128,13 +128,3 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         '''На вывод возвращаем рецепт через другой сериалайзер.'''
         return RecipeSerializer(instance, context=self.context).data
-
-    def create(self, validated_data):
-        '''Создания рецепта.'''
-        with transaction.atomic():
-            author = self.context.get('request').user
-            recipe = Recipe.objects.create(
-                author=author,
-                **validated_data
-            )
-        return recipe
