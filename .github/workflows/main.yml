@@ -52,7 +52,6 @@ jobs:
           context: ./backend/foodgram
           file: ./backend/foodgram/Dockerfile
           push: true
-          # tags: ваш-логин-на-docker-hub/ваш-репозиторий-на-docker-hub:latest
           tags: ${{  secrets.DOCKER_USERNAME  }}/foodgram_backend:latest
 
       - name: Push frontend to Docker Hub
