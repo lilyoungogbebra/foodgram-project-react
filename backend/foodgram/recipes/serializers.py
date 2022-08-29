@@ -2,9 +2,12 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
+from django.db import transaction
 
 from .models import Ingredient, Recipe, RecipeIngredientRelationship, Tag
 from users.serializers import UserSerializer
+from .utils import (create_relationship_tag_recipe,
+                    create_relationship_ingredient_recipe)
 
 User = get_user_model()
 
@@ -127,3 +130,17 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         '''На вывод возвращаем рецепт через другой сериалайзер.'''
         return RecipeSerializer(instance, context=self.context).data
+
+    def create(self, validated_data): 
+        '''Создания рецепта.''' 
+        with transaction.atomic(): 
+            ingredients = validated_data.pop('ingredient_in_recipe') 
+            tags = validated_data.pop('tags') 
+            author = self.context.get('request').user 
+            recipe = Recipe.objects.create( 
+                author=author, 
+                **validated_data 
+            ) 
+            create_relationship_tag_recipe(tags, recipe) 
+            create_relationship_ingredient_recipe(ingredients, recipe) 
+        return recipe 
