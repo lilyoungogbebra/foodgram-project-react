@@ -8,7 +8,7 @@ User = get_user_model()
 
 
 class Ingredient(models.Model):
-    '''Модель ингредиента.'''
+    """Модель ингредиента."""
     name = models.CharField(
         max_length=200,
         unique=False,
@@ -59,7 +59,7 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
-    '''Модель рецепта.'''
+    """Модель рецепта."""
     cooking_time = models.PositiveIntegerField(
         blank=False,
         null=False,

@@ -16,7 +16,7 @@ from .utils import post_delete_relationship_user_with_object
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    '''Вьюсет рецептов.'''
+    """Вьюсет рецептов."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     pagination_class = RecipePagination
@@ -28,14 +28,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
 
     def get_serializer_class(self):
-        '''При создании или обновлении рецепта, выбираем другой сериализатор'''
+        """При создании или обновлении рецепта, выбираем другой сериализатор."""
         if self.action in ['create', 'partial_update', 'update']:
             return RecipeCreateUpdateSerializer
         return RecipeSerializer
 
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, pk=None):
-        '''Эндпоинт для избранных рецептов.'''
+        """Эндпоинт для избранных рецептов."""
         return post_delete_relationship_user_with_object(
             request=request,
             pk=pk,
@@ -45,7 +45,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post', 'delete'])
     def shopping_cart(self, request, pk=None):
-        '''Эндпоинт для списка покупок.'''
+        """Эндпоинт для списка покупок."""
         return post_delete_relationship_user_with_object(
             request=request,
             pk=pk,
@@ -55,7 +55,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def download_shopping_cart(self, request):
-        '''Эндпоинт для загрузки списка покупок.'''
+        """Эндпоинт для загрузки списка покупок."""
         recipes_user_in_shoplist = ShoppingUserList.objects.filter(
             user=request.user
         )
@@ -94,13 +94,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class TagViewSet(ListRetrieveModelViewSet):
-    '''Вьюсет для тегов.'''
+    """Вьюсет для тегов."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
 
 class IngredientViewSet(ListRetrieveModelViewSet):
-    '''Вьюсет для ингредиентов.'''
+    """Вьюсет для ингредиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)

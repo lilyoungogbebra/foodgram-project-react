@@ -5,7 +5,7 @@ from .models import Ingredient, Recipe, Tag
 
 
 class CustomRecipeFilterSet(filters.FilterSet):
-    '''Кастомные фильтры.'''
+    """Кастомные фильтры."""
     tags = filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
@@ -19,7 +19,7 @@ class CustomRecipeFilterSet(filters.FilterSet):
     )
 
     def _bool_filter(self, key, value, queryset, user):
-        '''Фильтрация ключей.'''
+        """Фильтрация ключей."""
         map_dict = {f'{key}__user': user}
         if not user.is_anonymous:
             if value:
@@ -29,12 +29,12 @@ class CustomRecipeFilterSet(filters.FilterSet):
         return queryset
 
     def filter_is_favorited(self, queryset, name, value):
-        '''Рецепты избранного.'''
+        """Рецепты избранного."""
         key = 'favorit_recipe'
         return self._bool_filter(key, value, queryset, user=self.request.user)
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
-        '''Рецепты покупок.'''
+        """Рецепты покупок."""
         key = 'recipe_in_shoplist'
         return self._bool_filter(key, value, queryset, user=self.request.user)
 
@@ -44,7 +44,7 @@ class CustomRecipeFilterSet(filters.FilterSet):
 
 
 class IngredientSearchFilter(filters.FilterSet):
-    '''Поиск ингредиента по названию.'''
+    """Поиск ингредиента по названию."""
     name = filters.CharFilter(lookup_expr='istartswith')
 
     class Meta:

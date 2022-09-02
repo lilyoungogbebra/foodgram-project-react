@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 
 
 def hex_field_validator(value):
-    '''Проверка формата HEX.'''
+    """Проверка формата HEX."""
     message = (
         'Введите цвет в формате HEX.'
     )

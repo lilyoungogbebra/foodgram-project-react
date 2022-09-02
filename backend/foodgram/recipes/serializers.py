@@ -1,7 +1,10 @@
+import utils
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
+from django.db import transaction
 
 from .models import Ingredient, Recipe, RecipeIngredientRelationship, Tag
 from users.serializers import UserSerializer
@@ -10,7 +13,7 @@ User = get_user_model()
 
 
 class TagSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для тега.'''
+    """Сериалайзер для тега."""
 
     class Meta:
         model = Tag
@@ -18,7 +21,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для ингредиента.'''
+    """Сериалайзер для ингредиента."""
 
     class Meta:
         model = Ingredient
@@ -26,7 +29,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientRelationshipSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для таблицы Рецепта с ингредиентом.'''
+    """Сериалайзер для таблицы Рецепта с ингредиентом."""
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.StringRelatedField(source='ingredient.name')
     measurement_unit = serializers.StringRelatedField(
@@ -44,7 +47,7 @@ class RecipeIngredientRelationshipSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    '''Сериалайзер для рецепта.'''
+    """Сериалайзер для рецепта."""
     ingredients = RecipeIngredientRelationshipSerializer(
         read_only=True,
         many=True,
@@ -71,14 +74,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self):
-        '''Проверка, находится ли обьект в избранном.'''
+        """Проверка, находится ли обьект в избранном."""
         user = self.context['request'].user
         if user != AnonymousUser.is_authenticated:
             return True
         return False
 
     def get_is_in_shopping_cart(self, obj):
-        '''Проверка, находится ли обьект в списке покупок.'''
+        """Проверка, находится ли обьект в списке покупок."""
         user = self.context['request'].user
         if user != AnonymousUser.is_authenticated:
             return True
@@ -87,7 +90,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientAmountCreateUpdateSerializer(
         serializers.ModelSerializer):
-    '''Сериалайзер для вывода кол-ва ингредиентов.'''
+    """Сериалайзер для вывода кол-ва ингредиентов."""
     id = serializers.IntegerField()
     amount = serializers.IntegerField()
 
@@ -100,7 +103,7 @@ class RecipeIngredientAmountCreateUpdateSerializer(
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
-    '''Сериалайзер, производящий запись или обновление рецепта.'''
+    """Сериалайзер, производящий запись или обновление рецепта."""
     ingredients = RecipeIngredientAmountCreateUpdateSerializer(
         many=True,
         source='ingredient_in_recipe'
@@ -125,5 +128,19 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         )
 
     def to_representation(self, instance):
-        '''На вывод возвращаем рецепт через другой сериалайзер.'''
+        """На вывод возвращаем рецепт через другой сериалайзер."""
         return RecipeSerializer(instance, context=self.context).data
+
+    def create(self, validated_data): 
+        """Создания рецепта."""
+        with transaction.atomic():
+            ingredients = validated_data.pop('ingredient_in_recipe')
+            tags = validated_data.pop('tags')
+            author = self.context.get('request').user
+            recipe = Recipe.objects.create(
+                author=author,
+                **validated_data
+            )
+            utils.create_relationship_tag_recipe(tags, recipe)
+            utils.create_relationship_ingredient_recipe(ingredients, recipe)
+        return recipe

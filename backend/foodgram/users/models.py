@@ -74,7 +74,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Follow(models.Model):
-    '''Модель связующей таблицы подписок пользователей.'''
+    """Модель связующей таблицы подписок пользователей."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

@@ -10,7 +10,7 @@ class AdminAllOnlyAuthorPermission(permissions.BasePermission):
         )
 
     def get_permissions(self):
-        '''Ветвление пермишенов.'''
+        """Ветвление пермишенов."""
         if self.action in ['list', 'retrieve']:
             return (permissions.AllowAny(),)
         return super().get_permissions()

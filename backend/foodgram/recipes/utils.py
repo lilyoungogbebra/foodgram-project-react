@@ -8,13 +8,13 @@ from .serializers import RecipeSerializer
 
 
 def create_relationship_tag_recipe(tags, recipe):
-    '''Наполнение связующей таблицы тегами и рецептами.'''
+    """Наполнение связующей таблицы тегами и рецептами."""
     for tag in tags:
         RecipeTagRelationship.objects.create(tag=tag, recipe=recipe)
 
 
 def create_relationship_ingredient_recipe(ingredients, recipe):
-    '''Наполнение связующей таблицы ингредиентами и рецептами.'''
+    """Наполнение связующей таблицы ингредиентами и рецептами."""
     ingredient_list = []
     for ingredient in ingredients:
         cur_id = ingredient['id']
