@@ -28,7 +28,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
 
     def get_serializer_class(self):
-        """При создании или обновлении рецепта, выбираем другой сериализатор."""
+        """При создании или обновлении рецепта выбираем другой сериализатор."""
         if self.action in ['create', 'partial_update', 'update']:
             return RecipeCreateUpdateSerializer
         return RecipeSerializer
