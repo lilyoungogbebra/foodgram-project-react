@@ -1,4 +1,3 @@
-import utils
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.db import transaction
@@ -7,6 +6,7 @@ from rest_framework import serializers
 
 from .models import Ingredient, Recipe, RecipeIngredientRelationship, Tag
 from users.serializers import UserSerializer
+from .utils import create_relationship_tag_recipe, create_relationship_ingredient_recipe
 
 User = get_user_model()
 
@@ -140,6 +140,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 author=author,
                 **validated_data
             )
-            utils.create_relationship_tag_recipe(tags, recipe)
-            utils.create_relationship_ingredient_recipe(ingredients, recipe)
+            create_relationship_tag_recipe(tags, recipe)
+            create_relationship_ingredient_recipe(ingredients, recipe)
         return recipe
