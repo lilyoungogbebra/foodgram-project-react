@@ -1,10 +1,10 @@
+import serializers
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.response import Response
 
 from .models import (Ingredient, Recipe, RecipeIngredientRelationship,
                      RecipeTagRelationship)
-from .serializers import RecipeSerializer
 
 
 def create_relationship_tag_recipe(tags, recipe):
@@ -53,7 +53,7 @@ def post_delete_relationship_user_with_object(
             recipe=recipe,
             user=request.user
         )
-        serializer = RecipeSerializer()
+        serializer = serializers.RecipeSerializer()
         return Response(serializer.to_representation(instance=recipe),
                         status=status.HTTP_201_CREATED)
     obj_recipe = model.objects.filter(
