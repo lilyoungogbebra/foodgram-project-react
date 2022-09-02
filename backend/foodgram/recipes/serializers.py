@@ -4,7 +4,8 @@ from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from .models import Ingredient, Recipe, RecipeIngredientRelationship, Tag
+from .models import (Ingredient, Recipe, RecipeIngredientRelationship,
+                     RecipeTagRelationship, Tag)
 from .utils import (create_relationship_ingredient_recipe,
                     create_relationship_tag_recipe)
 from users.serializers import UserSerializer
@@ -100,6 +101,35 @@ class RecipeIngredientAmountCreateUpdateSerializer(
             'id',
             'amount',
         )
+
+
+def create_relationship_tag_recipe(tags, recipe):
+    """Наполнение связующей таблицы тегами и рецептами."""
+    for tag in tags:
+        RecipeTagRelationship.objects.create(tag=tag, recipe=recipe)
+
+
+def create_relationship_ingredient_recipe(ingredients, recipe):
+    """Наполнение связующей таблицы ингредиентами и рецептами."""
+    ingredient_list = []
+    for ingredient in ingredients:
+        cur_id = ingredient['id']
+        current_ingredient = Ingredient.objects.filter(id=cur_id).first()
+        if not current_ingredient:
+            message = (
+                f'Недопустимый первичный ключ \"{cur_id}\" -'
+                + 'ингредиента не существует в нашей бд.'
+            )
+            raise serializers.ValidationError(
+                {'ingredients': [f'{message}']}
+            )
+        new_ingredient = RecipeIngredientRelationship(
+            recipe=recipe,
+            ingredient_id=cur_id,
+            amount=ingredient['amount'],
+        )
+        ingredient_list.append(new_ingredient)
+    RecipeIngredientRelationship.objects.bulk_create(ingredient_list)
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
