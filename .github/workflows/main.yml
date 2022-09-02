@@ -22,7 +22,6 @@ jobs:
         pip install -r backend/foodgram/requirements.txt
     - name: Test with flake8 and django tests
       run: |
-        # запуск проверки проекта по flake8
         python -m flake8
         # перейти в папку, содержащую manage.py — 
         cd backend/foodgram/
