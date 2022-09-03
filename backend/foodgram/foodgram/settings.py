@@ -1,10 +1,12 @@
 import os
 
-from decouple import config
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = 'SECRET_KEY'
 
 DEBUG = False
 
@@ -60,12 +62,12 @@ AUTH_USER_MODEL = 'users.User'
 
 DATABASES = {
     'default': {
-        'ENGINE': config('DB_ENGINE', default="django.db.backends.postgresql"),
-        'NAME': config('DB_NAME', default="postgres"),
-        'USER': config('POSTGRES_USER', default="postgres"),
-        'PASSWORD': config('POSTGRES_PASSWORD', default="postgres"),
-        'HOST': config('DB_HOST', default="db"),
-        'PORT': config('DB_PORT', default="5432")
+        'ENGINE': os.getenv('DB_ENGINE', default="django.db.backends.postgresql"),
+        'NAME': os.getenv('DB_NAME', default="postgres"),
+        'USER': os.getenv('POSTGRES_USER', default="postgres"),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default="postgres"),
+        'HOST': os.getenv('DB_HOST', default="db"),
+        'PORT': os.getenv('DB_PORT', default="5432")
     }
 }
 
