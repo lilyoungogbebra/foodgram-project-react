@@ -1,5 +1,4 @@
 import os
-from tkinter import SE
 
 from dotenv import load_dotenv
 
