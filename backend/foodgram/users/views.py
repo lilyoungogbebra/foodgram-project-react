@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Follow
+from .permissions import UserPermission
 from .pagination import UserPagination
 from .serializers import (NewUserSerializer, SetPasswordSerializer,
                           SubscriptionsSerializer, UserSerializer)
@@ -17,16 +17,9 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = UserPagination
-    permission_classes = (permissions.IsAuthenticated,)
 
     def get_permissions(self):
-        if self.action == 'create':
-            permission_classes = [IsAuthenticated]
-        elif self.action == 'actioned':
-            permission_classes = [IsAuthenticated]
-        else:
-            permission_classes = [AllowAny]
-        return [permission() for permission in permission_classes]
+        return (UserPermission(),)
 
     def get_serializer_class(self):
         if self.action == 'create':
