@@ -5,8 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Follow
-from .permissions import UserPermission
 from .pagination import UserPagination
+from .permissions import UserPermission
 from .serializers import (NewUserSerializer, SetPasswordSerializer,
                           SubscriptionsSerializer, UserSerializer)
 
