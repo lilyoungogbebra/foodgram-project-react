@@ -1,12 +1,21 @@
 from django.urls import include, path
-from rest_framework import routers
+from rest_framework.routers import SimpleRouter
 
-from .views import IngredientViewSet, RecipeViewSet, TagViewSet
+from .views import (IngredientViewSet, RecipeViewSet, TagViewSet,
+                    download_shopping_cart)
 
-router = routers.SimpleRouter()
-router.register('recipes', RecipeViewSet, basename='recipes')
-router.register(r'tags', TagViewSet, basename='tags')
-router.register(r'ingredients', IngredientViewSet, basename='ingredients')
+router_v1 = SimpleRouter()
+
+router_v1.register('tags', TagViewSet, basename='tags')
+router_v1.register('ingredients', IngredientViewSet, basename='ingredients')
+router_v1.register('recipes', RecipeViewSet, basename='recipes')
+
+
 urlpatterns = [
-    path('', include(router.urls)),
+    path(
+        'api/recipes/download_shopping_cart/',
+        download_shopping_cart,
+        name='download_shopping_cart'
+    ),
+    path('api/', include(router_v1.urls)),
 ]

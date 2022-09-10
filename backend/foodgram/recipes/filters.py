@@ -1,52 +1,33 @@
-from django_filters import AllValuesMultipleFilter
-from django_filters import rest_framework as filters
+from django.contrib.auth import get_user_model
+from django_filters.rest_framework import FilterSet, filters
+from rest_framework.filters import SearchFilter
 
-from .models import Ingredient, Recipe, Tag
+from .models import Recipe
+
+User = get_user_model()
 
 
-class CustomRecipeFilterSet(filters.FilterSet):
-    """Кастомные фильтры."""
-    tags = filters.ModelMultipleChoiceFilter(
-        field_name='tags__slug',
-        to_field_name='slug',
-        label='tags',
-        queryset=Tag.objects.all()
-    )
-    author = AllValuesMultipleFilter(field_name='author__id')
+class IngredientNameFilter(SearchFilter):
+    search_param = 'name'
+
+
+class RecipeFilter(FilterSet):
+    tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
+    author = filters.ModelChoiceFilter(queryset=User.objects.all())
     is_favorited = filters.BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = filters.BooleanFilter(
-        method='filter_is_in_shopping_cart'
-    )
-
-    def _bool_filter(self, key, value, queryset, user):
-        """Фильтрация ключей."""
-        map_dict = {f'{key}__user': user}
-        if not user.is_anonymous:
-            if value:
-                return queryset.filter(**map_dict)
-            elif value is False:
-                return queryset.exclude(**map_dict)
-        return queryset
+        method='filter_is_in_shopping_cart')
 
     def filter_is_favorited(self, queryset, name, value):
-        """Рецепты избранного."""
-        key = 'favorit_recipe'
-        return self._bool_filter(key, value, queryset, user=self.request.user)
+        if value and not self.request.user.is_anonymous:
+            return queryset.filter(favorites__user=self.request.user)
+        return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
-        """Рецепты покупок."""
-        key = 'recipe_in_shoplist'
-        return self._bool_filter(key, value, queryset, user=self.request.user)
+        if value and not self.request.user.is_anonymous:
+            return queryset.filter(purchase__user=self.request.user)
+        return queryset
 
     class Meta:
         model = Recipe
-        fields = ['tags', 'author', 'is_favorited', 'is_in_shopping_cart']
-
-
-class IngredientSearchFilter(filters.FilterSet):
-    """Поиск ингредиента по названию."""
-    name = filters.CharFilter(lookup_expr='istartswith')
-
-    class Meta:
-        model = Ingredient
-        fields = ['name']
+        fields = ('tags', 'author')

@@ -1,112 +1,54 @@
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.contrib.auth.password_validation import validate_password
-from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.exceptions import ValidationError
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
-
-from .managers import CustomUserManager
 
 
-def username_validator_not_past_me(value):
-    message = (
-        'В сервисе запрещено использовать '
-        'значение \"me\" как имя пользователя.'
-    )
-    if value == 'me':
-        raise ValidationError(message)
-
-
-class User(AbstractBaseUser, PermissionsMixin):
-    username_validator = UnicodeUsernameValidator()
+class CustomUser(AbstractUser):
     username = models.CharField(
         'Логин',
         max_length=150,
         unique=True,
-        help_text=_(
-            'Required. 150 characters or fewer. '
-            'Letters, digits and @/./+/-/_ only.'
-        ),
-        validators=[username_validator, username_validator_not_past_me],
-        error_messages={
-            'unique': _('A user with that username already exists.'),
-        },
+    )
+    email = models.EmailField(
+        'Почта',
+        max_length=254,
+        unique=True,
     )
     first_name = models.CharField(
-        _('first name'),
+        'Имя',
         max_length=150,
     )
     last_name = models.CharField(
-        _('last name'),
+        'Фамилия',
         max_length=150,
     )
-    email = models.EmailField(
-        _('email address'),
-        max_length=254,
-        unique=True)
-    password = models.CharField(
-        _('password'),
-        max_length=150,
-        validators=[validate_password],
-    )
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(default=timezone.now)
-
-    objects = CustomUserManager()
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = [
-        'username',
-        'first_name',
-        'last_name',
-        'password',
-    ]
 
     class Meta:
-        ordering = ['username']
-        verbose_name = 'пользователь'
-        verbose_name_plural = 'пользователи'
+        ordering = ['id']
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
-        return self.email
+        return self.username
 
 
 class Follow(models.Model):
-    """Модель связующей таблицы подписок пользователей."""
     user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='follower',
-        verbose_name='Подписывающийся пользователь',
-    )
-    following = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
+        CustomUser, on_delete=models.CASCADE,
+        related_name='followers',
+        verbose_name='Пользователь подписчик')
+    author = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE,
         related_name='following',
-        verbose_name='Пользователь на которого подписываются',
-    )
+        verbose_name='Пользователь на которого подписываемся')
 
     class Meta:
-        verbose_name = 'Связь автора и подписавшегося'
-        verbose_name_plural = (
-            'Связи авторов и подписавшихся'
-            + 'на них пользователей'
-        )
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
-                name='unique_relationships_user_following',
-                fields=['user', 'following'],
-            ),
-            models.CheckConstraint(
-                name='prevent_self_follow',
-                check=~models.Q(user=models.F('following')),
-            ),
+                fields=['user', 'author'], name='unique_follow'
+            )
         ]
 
     def __str__(self):
-        return 'Пользователь {} подписан на {}'.format(
-            self.user,
-            self.following
-        )
+        return f'{self.user} подписан на {self.author}'

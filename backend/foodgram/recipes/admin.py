@@ -1,90 +1,32 @@
 from django.contrib import admin
 
-from .models import (FavoritesRecipesUserList, Ingredient, Recipe,
-                     RecipeIngredientRelationship, RecipeTagRelationship,
-                     ShoppingUserList, Tag)
+from .models import Favorites, Ingredient, IngredientInRecipe, Recipe, Tag
 
 
-class RecipeInline(admin.TabularInline):
-    model = RecipeTagRelationship
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('id', 'recipe', 'user')
+
+
+class IngredientInRecipeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'ingredient', 'recipe', 'amount')
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'author',
-        'name',
-        'calc_in_users_favorites',
-    )
-    list_filter = ('author', 'name', 'tags',)
-    inlines = [RecipeInline, ]
-
-    def calc_in_users_favorites(self, obj):
-        return FavoritesRecipesUserList.objects.filter(recipe=obj).count()
-
-    class Meta:
-        model = Recipe
+    list_display = ('id', 'author', 'name',)
+    list_filter = ('author', 'name', 'tags')
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'name',
-        'measurement_unit'
-    )
-    ordering = ('pk',)
+    list_filter = ('id', 'name', 'measurement_unit',)
     search_fields = ('name',)
-    list_filter = ('name',)
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'name',
-        'slug',
-        'color'
-    )
+    list_display = ('name', 'color', 'slug')
 
 
-class RecipeTagRelationshipAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'tag',
-        'recipe',
-    )
-
-
-class RecipeIngredientRelationshipAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'ingredient',
-        'recipe',
-    )
-
-
-class FavoritesRecipesUserListAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'user',
-        'recipe',
-    )
-
-
-class ShoppingUserListAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'user',
-        'recipe',
-    )
-
-
-admin.site.register(Ingredient, IngredientAdmin)
+admin.site.register(IngredientInRecipe, IngredientInRecipeAdmin)
 admin.site.register(Tag, TagAdmin)
+admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(RecipeTagRelationship, RecipeTagRelationshipAdmin)
-admin.site.register(
-    RecipeIngredientRelationship,
-    RecipeIngredientRelationshipAdmin
-)
-admin.site.register(FavoritesRecipesUserList, FavoritesRecipesUserListAdmin)
-admin.site.register(ShoppingUserList, ShoppingUserListAdmin)
+admin.site.register(Favorites, FavoriteAdmin)

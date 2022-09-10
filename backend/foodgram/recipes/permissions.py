@@ -1,16 +1,18 @@
 from rest_framework import permissions
 
 
-class AdminAllOnlyAuthorPermission(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return bool(
-            request.user.is_superuser
-            or obj.author == request.user
-            or request.user.groups.filter(name='recipes_admins').exists()
-        )
+class AdminOrAuthorOrReadOnly(permissions.BasePermission):
 
-    def get_permissions(self):
-        """Ветвление пермишенов."""
-        if self.action in ['list', 'retrieve']:
-            return (permissions.AllowAny(),)
-        return super().get_permissions()
+    def has_permission(self, request, view):
+        if request.method == 'POST':
+            return request.user.is_authenticated
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if (request.method in ['PUT', 'PATCH', 'DELETE'] and not
+                request.user.is_anonymous):
+            return (
+                request.user == obj.author
+                or request.user.is_superuser
+            )
+        return request.method in permissions.SAFE_METHODS
