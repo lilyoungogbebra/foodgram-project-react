@@ -1,11 +1,10 @@
 from django.shortcuts import get_object_or_404
 from djoser.serializers import SetPasswordSerializer
+from recipes.serializers import (CustomUserCreateSerializer,
+                                 CustomUserSerializer, FollowSerializer)
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from recipes.serializers import (CustomUserCreateSerializer,
-                                 CustomUserSerializer, FollowSerializer)
 
 from .models import CustomUser, Follow
 from .pagination import LimitPageNumberPagination

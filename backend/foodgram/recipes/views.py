@@ -18,6 +18,7 @@ from users.pagination import LimitPageNumberPagination
 INVALID_RECIPE = 'Рецепта нет в списке избранных'
 DELETE_EMPTY_LIST = 'Невозможно удалить пустой список рецептов'
 
+
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -65,7 +66,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-
     @action(
         methods=['POST', 'DELETE'],
         url_path='favorite', url_name='favorite',
@@ -90,7 +90,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 favorite.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             except Favorites.DoesNotExist:
-                return Response(INVALID_RECIPE, status=status.HTTP_400_BAD_REQUEST)
+                return Response(INVALID_RECIPE,
+                                status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         methods=['POST', 'DELETE'],
@@ -118,7 +119,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response(
                     DELETE_EMPTY_LIST,
                     status=status.HTTP_400_BAD_REQUEST
-                    )
+                )
 
 
 @api_view(['GET', ])

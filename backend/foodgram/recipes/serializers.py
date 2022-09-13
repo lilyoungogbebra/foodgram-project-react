@@ -2,10 +2,9 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from users.models import CustomUser, Follow
-
 from .models import (Favorites, Ingredient, IngredientInRecipe, Purchase,
                      Recipe, Tag)
+from users.models import CustomUser, Follow
 
 
 class CustomUserSerializer(UserSerializer):
@@ -94,7 +93,7 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
-        )
+    )
 
     class Meta:
         model = IngredientInRecipe
