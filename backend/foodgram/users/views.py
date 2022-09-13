@@ -19,7 +19,6 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     pagination_class = LimitPageNumberPagination
 
-
     def get_permissions(self):
         return (UserPermission(),)
 
@@ -62,7 +61,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
             )
         user.set_password(serializer.validated_data.get('password'))
         user.save()
-        return Response(serializer.data,  status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         methods=['get'],
@@ -93,7 +92,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     @action(detail=False,
             methods=['POST', 'DELETE'],
             url_path=r'(?P<id>\d+)/subscribe',
-    )
+            )
     def subscribe(self, request, id):
         user = request.user
         author = get_object_or_404(CustomUser, id=id)
@@ -101,7 +100,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
             return Response(
                 'Нельзя подписаться на себя!',
                 status=status.HTTP_400_BAD_REQUEST,
-                )
+            )
         if request.method == 'DELETE':
             object = Follow.objects.filter(
                 author=author, user=user).first()
@@ -109,14 +108,14 @@ class CustomUserViewSet(viewsets.ModelViewSet):
                 return Response(
                     'Вы не подписаны на этого пользователя!',
                     status=status.HTTP_400_BAD_REQUEST,
-                    )
+                )
             object.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         if Follow.objects.filter(author=author, user=user).exists():
             return Response(
                 'Вы уже подписаны на этого пользователя!',
                 status=status.HTTP_400_BAD_REQUEST,
-                )
+            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=user, author=author)
@@ -125,7 +124,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         permission_classes=[permissions.IsAuthenticated]
-        )
+    )
     def subscriptions(self, request):
         queryset = Follow.objects.filter(user=request.user)
         pages = self.paginate_queryset(queryset)
