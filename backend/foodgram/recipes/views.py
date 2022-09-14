@@ -92,6 +92,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             except Favorites.DoesNotExist:
                 return Response(INVALID_RECIPE,
                                 status=status.HTTP_400_BAD_REQUEST)
+        return True
 
     @action(
         methods=['POST', 'DELETE'],
