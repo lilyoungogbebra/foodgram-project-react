@@ -1,54 +1,51 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import constraints
 
 
 class CustomUser(AbstractUser):
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    email = models.EmailField(unique=True, verbose_name='Почта')
     username = models.CharField(
-        'Логин',
-        max_length=150,
-        unique=True,
+        max_length=150, unique=True, verbose_name='Логин'
     )
-    email = models.EmailField(
-        'Почта',
-        max_length=254,
-        unique=True,
-    )
-    first_name = models.CharField(
-        'Имя',
-        max_length=150,
-    )
-    last_name = models.CharField(
-        'Фамилия',
-        max_length=150,
-    )
+    first_name = models.CharField(max_length=150, verbose_name='Имя')
+    last_name = models.CharField(max_length=150, verbose_name='Фамилия')
 
     class Meta:
-        ordering = ['id']
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.username
 
 
 class Follow(models.Model):
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE,
-        related_name='followers',
-        verbose_name='Пользователь подписчик')
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        verbose_name='Пользователь',
+    )
     author = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE,
+        CustomUser,
+        on_delete=models.CASCADE,
         related_name='following',
-        verbose_name='Пользователь на которого подписываемся')
+        verbose_name='Подписки',
+    )
+    created_at = models.DateField(auto_now_add=True, verbose_name='Создан')
 
     class Meta:
-        verbose_name = 'Подписка'
+        ordering = ('-created_at',)
+        verbose_name = 'Подписки'
         verbose_name_plural = 'Подписки'
         constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'author'], name='unique_follow'
+            constraints.UniqueConstraint(
+                fields=['author', 'user'], name='unique_follow'
             )
         ]
 
-    def __str__(self):
-        return f'{self.user} подписан на {self.author}'
+    def __str__(self) -> str:
+        return f'{self.author}, {self.user}'
