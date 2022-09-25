@@ -1,5 +1,5 @@
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 
 from users.serializers import CustomUserSerializer
 from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
@@ -81,44 +81,50 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             user=request.user, recipe=obj
         ).exists()
 
-    def create(self, validated_data):
+    def create(self, validated_data, serialized_data):
         request = self.context.get('request')
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(author=request.user, **validated_data)
         recipe.tags.set(tags_data)
-        for ingredient in ingredients_data:
-            RecipeIngredient.objects.create(
+        author = serialized_data.get('author')
+        name = serialized_data.get('name')
+        objs = [
+            RecipeIngredient(
                 recipe=recipe,
                 ingredient=Ingredient.objects.get(id=ingredient['id']),
                 amount=ingredient['amount']
             )
-        return recipe
+            for ingredient in ingredients_data
+        ]
+        if Recipe.objects.filter(author=author, name=name).exists():
+            raise exceptions.ValidationError(
+                ('Вы уже публиковали рецепт с таким названием')
+        )
+        msg = RecipeIngredient.objects.bulk_create(objs)
+        return msg
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
+        request = self.context.get('request')
+        recipe = Recipe.objects.create(author=request.user, **validated_data)
         update = {}
-        for ingredient in ingredients_data:
-            try:
-                obj = RecipeIngredient.objects.get(
-                    id=ingredient['id'],
-                    amount=ingredient['amount']
-                ).ingredient
-            except RecipeIngredient.DoesNotExist:
-                obj = Ingredient.objects.get(id=ingredient['id'])
-            finally:
-                if obj in update:
-                    update[obj] += ingredient['amount']
-                else:
-                    update[obj] = ingredient['amount']
-        instance.ingredients.clear()
-        for obj, amount in update.items():
-            RecipeIngredient.objects.create(
-                ingredient=obj, amount=amount, recipe=instance
+        objs = [
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=Ingredient.objects.get(id=ingredient['id']),
+                amount=ingredient['amount']
             )
+            for ingredient in ingredients_data
+        ]
+        for obj, amount in update.items(): 
+            RecipeIngredient.objects.create( 
+                ingredient=obj, amount=amount, recipe=instance 
+            ) 
         instance.tags.set(tags_data)
-        return super().update(instance, validated_data)
+        msg = RecipeIngredient.objects.bulk_create(objs)
+        return super().update(instance, validated_data, msg)
 
 
 class RecipeReadSerializer(RecipeWriteSerializer):
@@ -126,9 +132,17 @@ class RecipeReadSerializer(RecipeWriteSerializer):
     author = CustomUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
 
-    def get_ingredients(self, obj):
-        ingredients = RecipeIngredient.objects.filter(recipe=obj)
-        return RecipeIngredientSerialiser(ingredients, many=True).data
+    class Meta:
+        model = Recipe
+        fields = [
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'name',
+            'text',
+            'cooking_time',
+        ]
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

@@ -1,21 +1,25 @@
+from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
+from rest_framework.viewsets import GenericViewSet
+from django.db.models import Sum
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from users.serializers import RecipeSubSerializer
 from .filters import IngredientNameFilter, RecipeFilter
-from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                     ShoppingCart, Tag)
+from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from .paginators import CustomPageNumberPaginator
 from .permissions import IsRecipeOwnerOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerialiser,
                           RecipeReadSerializer, RecipeWriteSerializer,
                           ShoppingCartSerializer, TagSerializer)
+
+User = get_user_model()
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -40,24 +44,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPaginator
 
     def get_queryset(self):
-        queryset = Recipe.objects.all()
-        user = self.request.user
-        is_in_shopping_cart = self.request.query_params.get(
-            "is_in_shopping_cart"
-        )
-        is_favorited = self.request.query_params.get("is_favorited")
-        cart = ShoppingCart.objects.filter(user=user)
-        favorite = Favorite.objects.filter(user=user)
-
-        if is_in_shopping_cart == "true":
-            queryset = queryset.filter(customers__in=cart)
-        elif is_in_shopping_cart == "false":
-            queryset = queryset.exclude(customers__in=cart)
-        if is_favorited == "true":
-            queryset = queryset.filter(in_favorite__in=favorite)
-        elif is_favorited == "false":
-            queryset = queryset.exclude(in_favorite__in=favorite)
-        return queryset.all()
+        if not self.request.user.is_authenticated:
+            return Recipe.objects.all()
+        user = get_object_or_404(User, id=self.request.user.id)
+        return Recipe.recipe_objects.with_favorited_shopping_cart(user=user)
 
     def get_serializer_class(self):
         if self.request.method in ['GET']:
@@ -100,8 +90,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         user = self.request.user
         recipes = user.shoppingcart.all().values_list('recipe', flat=True)
-        ingredients = RecipeIngredient.objects.filter(recipe__in=recipes)
-        buying_list = {}
+        ingredients = recipes.values(
+            'ingredients__name',
+            'ingredients__measurement_unit__name').order_by(
+            'ingredients__name').annotate(
+            ingredients_total=Sum('ingredient_amounts__amount')
+        )
+        buying_list = {} #type dict
         for ingredient in ingredients:
             name = ingredient.ingredient.name
             amount = ingredient.amount
@@ -125,7 +120,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response
 
 
-class ShoppingCartView(APIView):
+class ShoppingCartView(CreateModelMixin, DestroyModelMixin, GenericViewSet):
     permission_classes = (IsAuthenticated,)
     http_method_names = ['get', 'delete']
 
