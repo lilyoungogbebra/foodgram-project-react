@@ -1,7 +1,7 @@
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers, exceptions
-
+from rest_framework import exceptions, serializers
 from users.serializers import CustomUserSerializer
+
 from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                      ShoppingCart, Tag)
 
@@ -100,9 +100,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         if Recipe.objects.filter(author=author, name=name).exists():
             raise exceptions.ValidationError(
                 ('Вы уже публиковали рецепт с таким названием')
-        )
-        msg = RecipeIngredient.objects.bulk_create(objs)
-        return msg
+            )
+        return RecipeIngredient.objects.bulk_create(objs)
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
@@ -119,9 +118,9 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             for ingredient in ingredients_data
         ]
         for obj, amount in update.items(): 
-            RecipeIngredient.objects.create( 
-                ingredient=obj, amount=amount, recipe=instance 
-            ) 
+            RecipeIngredient.objects.create(
+                ingredient=obj, amount=amount, recipe=instance
+            )
         instance.tags.set(tags_data)
         msg = RecipeIngredient.objects.bulk_create(objs)
         return super().update(instance, validated_data, msg)

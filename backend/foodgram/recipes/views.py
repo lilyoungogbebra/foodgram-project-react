@@ -96,7 +96,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'ingredients__name').annotate(
             ingredients_total=Sum('ingredient_amounts__amount')
         )
-        buying_list = {} #type dict
+        buying_list = {}  # type dict
         for ingredient in ingredients:
             name = ingredient.ingredient.name
             amount = ingredient.amount
