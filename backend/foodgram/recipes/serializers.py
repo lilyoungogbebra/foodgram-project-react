@@ -117,7 +117,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             )
             for ingredient in ingredients_data
         ]
-        for obj, amount in update.items(): 
+        for obj, amount in update.items():
             RecipeIngredient.objects.create(
                 ingredient=obj, amount=amount, recipe=instance
             )
