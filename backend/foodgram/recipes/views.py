@@ -7,7 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
+from rest_framework.viewsets import GenericViewSet
 
 from .filters import IngredientNameFilter, RecipeFilter
 from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
@@ -119,7 +120,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response
 
 
-class ShoppingCartView(APIView):
+class ShoppingCartView(CreateModelMixin, DestroyModelMixin, GenericViewSet):
     serializer_class = ShoppingCartSerializer
     permission_classes = (IsAuthenticated, )
     lookup_field = 'recipe_id'

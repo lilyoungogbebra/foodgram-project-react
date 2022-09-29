@@ -11,8 +11,8 @@ router.register('recipes', RecipeViewSet, basename='recipes'),
 
 urlpatterns = [
     path(
-        'recipes/<int:pk>/shopping_cart/',
-        ShoppingCartView.as_view(),
+        'recipes/<int:recipe_id>/shopping_cart/',
+        ShoppingCartView.as_view({'get': 'create', 'delete': 'destroy'}),
         name='shopping_cart',
     ),
     path('', include(router.urls)),
