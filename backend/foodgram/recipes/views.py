@@ -47,12 +47,14 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    queryset = Recipe.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = RecipeFilter
     permission_classes = (IsRecipeOwnerOrReadOnly,)
     pagination_class = CustomPageNumberPaginator
 
     def get_queryset(self):
+        queryset = Recipe.objects.all()
         is_favorited = self.request.query_params.get('is_favorited')
         is_in_shopping_cart = self.request.query_params.get(
             'is_in_shopping_cart'
