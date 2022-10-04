@@ -2,13 +2,11 @@ from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
-from rest_framework.viewsets import GenericViewSet
 
 from .filters import IngredientNameFilter, RecipeFilter
 from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
@@ -16,13 +14,24 @@ from .paginators import CustomPageNumberPaginator
 from .permissions import IsRecipeOwnerOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerialiser,
                           RecipeReadSerializer, RecipeWriteSerializer,
-                          ShoppingCartSerializer, TagSerializer)
-from .services import DownloadList
+                          TagSerializer)
 
 User = get_user_model()
 
 
-class TagViewSet(viewsets.ModelViewSet):
+class ListRetrieveModelViewSet(
+        mixins.ListModelMixin,
+        mixins.RetrieveModelMixin,
+        viewsets.GenericViewSet):
+    '''
+    Кастомный базовый вьюсет:
+    Вернуть список объектов (GET);
+    Вернуть объект (GET);
+    '''
+    pass
+
+
+class TagViewSet(ListRetrieveModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
@@ -44,10 +53,26 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPaginator
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return Recipe.objects.all()
-        user = get_object_or_404(User, id=self.request.user.id)
-        return Recipe.recipe_objects.with_favorited_shopping_cart(user=user)
+        queryset = Recipe.objects.all()
+        is_favorited = self.request.query_params.get('is_favorited')
+        is_in_shopping_cart = self.request.query_params.get(
+            'is_in_shopping_cart'
+        )
+        if is_favorited:
+            recipes_id = Favorite.objects.filter(
+                user=self.request.user
+            ).values('recipe')
+            queryset = Recipe.objects.filter(
+                id__in=(map(lambda x: x['recipe'], recipes_id))
+            )
+        if is_in_shopping_cart:
+            recipes_id = ShoppingCart.objects.filter(
+                user=self.request.user
+            ).values('recipe')
+            queryset = Recipe.objects.filter(
+                id__in=(map(lambda x: x['recipe'], recipes_id))
+            )
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method in ['GET']:
@@ -96,7 +121,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'ingredients__name').annotate(
             ingredients_total=Sum('ingredient_amounts__amount')
         )
-        buying_list = {}  # type dict
+        buying_list: dict = {}
         for ingredient in ingredients:
             name = ingredient.ingredient.name
             amount = ingredient.amount
@@ -120,22 +145,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response
 
 
-class ShoppingCartView(CreateModelMixin, DestroyModelMixin, GenericViewSet):
-    serializer_class = ShoppingCartSerializer
-    permission_classes = (IsAuthenticated, )
-    lookup_field = 'recipe_id'
-
-    def get_queryset(self):
-        queryset = ShoppingCart.objects.all()
-        if self.action == 'destroy':
-            return queryset.filter(author=self.request.user)
-        return queryset
-
-    @action(['GET'], url_name='get_file', detail=False)
-    def get_file(self, request, *args, **kwargs):
-        queryset = request.user.shopping_lists.values_list(
-            'recipe__ingredients__ingredient__name',
-            'recipe__ingredients__ingredient__measurement_unit',
-            'recipe__ingredients__amount'
-        )
-        return DownloadList(queryset).download_file()
+class ShoppingCartView(ListRetrieveModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ['get', 'delete']
