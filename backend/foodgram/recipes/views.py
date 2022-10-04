@@ -54,6 +54,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPaginator
 
     def get_queryset(self):
+        queryset = Recipe.objects.all()
         is_favorited = self.request.query_params.get('is_favorited')
         is_in_shopping_cart = self.request.query_params.get(
             'is_in_shopping_cart'
@@ -62,16 +63,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipes_id = Favorite.objects.filter(
                 user=self.request.user
             ).values('recipe')
-            return Recipe.objects.filter(
+            queryset = Recipe.objects.filter(
                 id__in=(map(lambda x: x['recipe'], recipes_id))
             )
         if is_in_shopping_cart:
             recipes_id = ShoppingCart.objects.filter(
                 user=self.request.user
             ).values('recipe')
-            return Recipe.objects.filter(
+            queryset = Recipe.objects.filter(
                 id__in=(map(lambda x: x['recipe'], recipes_id))
             )
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method in ['GET']:
