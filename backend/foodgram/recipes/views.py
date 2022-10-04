@@ -63,14 +63,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipes_id = Favorite.objects.filter(
                 user=self.request.user
             ).values('recipe')
-            queryset = Recipe.objects.filter(
+            return Recipe.objects.filter(
                 id__in=(map(lambda x: x['recipe'], recipes_id))
             )
         if is_in_shopping_cart:
             recipes_id = ShoppingCart.objects.filter(
                 user=self.request.user
             ).values('recipe')
-            queryset = Recipe.objects.filter(
+            return Recipe.objects.filter(
                 id__in=(map(lambda x: x['recipe'], recipes_id))
             )
         return queryset
