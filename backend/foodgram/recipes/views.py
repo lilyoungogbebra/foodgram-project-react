@@ -69,9 +69,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipes_id = ShoppingCart.objects.filter(
                 user=self.request.user
             ).values('recipe')
-            return Recipe.objects.filter(
+        return Recipe.objects.filter(
                 id__in=(map(lambda x: x['recipe'], recipes_id))
-            )
+        )
 
     def get_serializer_class(self):
         if self.request.method in ['GET']:
