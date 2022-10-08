@@ -70,7 +70,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 user=self.request.user
             ).values('recipe')
         return Recipe.objects.filter(
-                id__in=(map(lambda x: x['recipe'], recipes_id))
+            id__in=(map(lambda x: x['recipe'], recipes_id))
         )
 
     def get_serializer_class(self):
