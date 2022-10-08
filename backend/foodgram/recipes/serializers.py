@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import exceptions, serializers
 from users.serializers import CustomUserSerializer
@@ -80,6 +81,40 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return ShoppingCart.objects.filter(
             user=request.user, recipe=obj
         ).exists()
+
+    def validate(serialized_data):
+        tags_data = serialized_data.pop('tags')
+        ingredients_data = serialized_data.pop('ingredients')
+        unique_ingredients = set()
+        for ingredient in ingredients_data:
+            if ingredient.get('amount') <= 0:
+                raise exceptions.ValidationError(
+                    _('Количество ингредиентов должно быть больше нуля')
+                )
+            if ingredient['id'] in unique_ingredients:
+                raise exceptions.ValidationError(
+                    _('Ингредиенты в рецепте не должны повторяться')
+                )
+            unique_ingredients.add(ingredient['id'])
+            new_recipe = Recipe.objects.create(**serialized_data)
+
+            tags = []
+
+            for tag in tags_data:
+                tag_object = get_object_or_404(Tag, id=tag.id)
+                tags.append(tag_object)
+            new_recipe.tags.add(*tags)
+
+            for ingredient in ingredients_data:
+                ingredient_object = get_object_or_404(
+                    Ingredient, id=ingredient.get('id')
+                )
+                new_recipe.ingredients.add(
+                    ingredient_object,
+                    through_defaults={'amount': ingredient.get('amount')}
+                )
+            new_recipe.save()
+            return new_recipe
 
     def create(self, validated_data, serialized_data):
         request = self.context.get('request')

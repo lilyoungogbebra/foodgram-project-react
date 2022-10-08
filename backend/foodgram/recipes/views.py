@@ -72,7 +72,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Recipe.objects.filter(
                 id__in=(map(lambda x: x['recipe'], recipes_id))
             )
-        return queryset
 
     def get_serializer_class(self):
         if self.request.method in ['GET']:
