@@ -82,8 +82,44 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             user=request.user, recipe=obj
         ).exists()
 
+    def create_ingredients(self, validated_data):
+        request = self.context.get('request')
+        ingredients_data = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(author=request.user, **validated_data)
+        objs = [
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=Ingredient.objects.get(id=ingredient['id']),
+                amount=ingredient['amount']
+            )
+            for ingredient in ingredients_data
+        ]
+        return RecipeIngredient.objects.bulk_create(objs)
+
+    def create(self, validated_data, serialized_data):
+        request = self.context.get('request')
+        tags_data = validated_data.pop('tags')
+        recipe = Recipe.objects.create(author=request.user, **validated_data)
+        recipe.tags.set(tags_data)
+        author = serialized_data.get('author')
+        name = serialized_data.get('name')
+
+        if Recipe.objects.filter(author=author, name=name).exists():
+            raise exceptions.ValidationError(
+                ('Вы уже публиковали рецепт с таким названием')
+            )
+
+    def update(self, instance, validated_data):
+        tags_data = validated_data.pop('tags')
+        update = {}
+        for obj, amount in update.items():
+            RecipeIngredient.objects.create(
+                ingredient=obj, amount=amount, recipe=instance
+            )
+        instance.tags.set(tags_data)
+        return super().update(instance, validated_data)
+
     def validate(self, serialized_data):
-        tags_data = serialized_data.pop('tags')
         ingredients_data = serialized_data.pop('ingredients')
         unique_ingredients = set()
         for ingredient in ingredients_data:
@@ -96,69 +132,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                     'Ингредиенты в рецепте не должны повторяться'
                 )
             unique_ingredients.add(ingredient['id'])
-        new_recipe = Recipe.objects.create(**serialized_data)
-
-        tags = []
-
-        for tag in tags_data:
-            tag_object = get_object_or_404(Tag, id=tag.id)
-            tags.append(tag_object)
-        new_recipe.tags.add(*tags)
-
-        for ingredient in ingredients_data:
-            ingredient_object = get_object_or_404(
-                Ingredient, id=ingredient.get('id')
-            )
-            new_recipe.ingredients.add(
-                ingredient_object,
-                through_defaults={'amount': ingredient.get('amount')}
-            )
-        new_recipe.save()
-        return new_recipe
-
-    def create(self, validated_data, serialized_data):
-        request = self.context.get('request')
-        ingredients_data = validated_data.pop('ingredients')
-        tags_data = validated_data.pop('tags')
-        recipe = Recipe.objects.create(author=request.user, **validated_data)
-        recipe.tags.set(tags_data)
-        author = serialized_data.get('author')
-        name = serialized_data.get('name')
-        objs = [
-            RecipeIngredient(
-                recipe=recipe,
-                ingredient=Ingredient.objects.get(id=ingredient['id']),
-                amount=ingredient['amount']
-            )
-            for ingredient in ingredients_data
-        ]
-        if Recipe.objects.filter(author=author, name=name).exists():
-            raise exceptions.ValidationError(
-                ('Вы уже публиковали рецепт с таким названием')
-            )
-        return RecipeIngredient.objects.bulk_create(objs)
-
-    def update(self, instance, validated_data):
-        ingredients_data = validated_data.pop('ingredients')
-        tags_data = validated_data.pop('tags')
-        request = self.context.get('request')
-        recipe = Recipe.objects.create(author=request.user, **validated_data)
-        update = {}
-        objs = [
-            RecipeIngredient(
-                recipe=recipe,
-                ingredient=Ingredient.objects.get(id=ingredient['id']),
-                amount=ingredient['amount']
-            )
-            for ingredient in ingredients_data
-        ]
-        for obj, amount in update.items():
-            RecipeIngredient.objects.create(
-                ingredient=obj, amount=amount, recipe=instance
-            )
-        instance.tags.set(tags_data)
-        msg = RecipeIngredient.objects.bulk_create(objs)
-        return super().update(instance, validated_data, msg)
+        return ingredient
 
 
 class RecipeReadSerializer(RecipeWriteSerializer):
