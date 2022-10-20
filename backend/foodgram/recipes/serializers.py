@@ -95,20 +95,17 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ]
         return RecipeIngredient.objects.bulk_create(objs)
 
-    def create(self, validated_data, serialized_data):
-        request = self.context.get('request')
+    def create(self, validated_data):
+        author = self.context.get('request').user
         tags_data = validated_data.pop('tags')
-        recipe = Recipe.objects.create(author=request.user, **validated_data)
+        recipe = Recipe.objects.create(author=author, **validated_data)
         recipe.tags.set(tags_data)
-        author = serialized_data.get('author')
-        name = serialized_data.get('name')
-
-        if Recipe.objects.filter(author=author, name=name).exists():
-            raise exceptions.ValidationError(
-                ('Вы уже публиковали рецепт с таким названием')
-            )
+        ingredients_data = validated_data.pop('ingredients')
+        self.create_ingredients(ingredients_data, recipe)
+        return Recipe.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
+        ingredients = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
         update = {}
         for obj, amount in update.items():
@@ -116,22 +113,28 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 ingredient=obj, amount=amount, recipe=instance
             )
         instance.tags.set(tags_data)
+        self.create_ingredients(ingredients, instance)
         return super().update(instance, validated_data)
 
     def validate(self, serialized_data):
+        author = serialized_data.get('author')
+        name = serialized_data.get('name')
         ingredients_data = serialized_data.pop('ingredients')
         unique_ingredients = set()
-        for ingredient in ingredients_data:
-            if ingredient.get('amount') <= 0:
-                raise exceptions.ValidationError(
-                    'Количество ингредиентов должно быть больше нуля'
-                )
-            if ingredient['id'] in unique_ingredients:
-                raise exceptions.ValidationError(
-                    'Ингредиенты в рецепте не должны повторяться'
-                )
-            unique_ingredients.add(ingredient['id'])
-        return ingredient
+        if ingredients_data.get('amount') <= 0:
+            raise exceptions.ValidationError(
+                'Количество ингредиентов должно быть больше нуля'
+            )
+        if ingredients_data['id'] in unique_ingredients:
+            raise exceptions.ValidationError(
+                'Ингредиенты в рецепте не должны повторяться'
+            )
+        unique_ingredients.add(ingredients_data['id'])
+        if Recipe.objects.filter(author=author, name=name).exists():
+            raise exceptions.ValidationError(
+                ('Вы уже публиковали рецепт с таким названием')
+            )
+        return ingredients_data
 
 
 class RecipeReadSerializer(RecipeWriteSerializer):

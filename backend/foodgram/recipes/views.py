@@ -31,6 +31,27 @@ class ListRetrieveModelViewSet(
     pass
 
 
+class FavoriteAndCartMixin:
+    def favorite_and_cart(self, request, pk):
+        recipe = get_object_or_404(Recipe, id=pk)
+        serializer = FavoriteSerializer(
+            data={'user': request.user.id, 'recipe': recipe.id}
+        )
+        if request.method == 'GET':
+            serializer.is_valid(raise_exception=True)
+            serializer.save(recipe=recipe, user=request.user)
+            serializer = RecipeWriteSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        favorite = get_object_or_404(
+            Favorite, user=request.user.id, recipe__id=pk
+        )
+        favorite.delete()
+        return Response(
+            f'Рецепт {recipe.name} - удален',
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
 class TagViewSet(ListRetrieveModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -46,63 +67,23 @@ class IngredientViewSet(viewsets.ModelViewSet):
     filter_class = IngredientNameFilter
 
 
-class RecipeViewSet(viewsets.ModelViewSet):
+class RecipeViewSet(viewsets.ModelViewSet, FavoriteAndCartMixin):
     queryset = Recipe.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = RecipeFilter
     permission_classes = (IsRecipeOwnerOrReadOnly,)
     pagination_class = CustomPageNumberPaginator
-
-    def get_queryset(self):
-        is_favorited = self.request.query_params.get('is_favorited')
-        is_in_shopping_cart = self.request.query_params.get(
-            'is_in_shopping_cart'
-        )
-        if is_favorited:
-            recipes_id = Favorite.objects.filter(
-                user=self.request.user
-            ).values('recipe')
-            return Recipe.objects.filter(
-                id__in=(map(lambda x: x['recipe'], recipes_id))
-            )
-        if is_in_shopping_cart:
-            recipes_id = ShoppingCart.objects.filter(
-                user=self.request.user
-            ).values('recipe')
-        return Recipe.objects.filter(
-            id__in=(map(lambda x: x['recipe'], recipes_id))
-        )
+    filterset_fields = (
+        'tags',
+        'author',
+        'is_favorited',
+        'is_in_shopping_cart'
+    )
 
     def get_serializer_class(self):
         if self.request.method in ['GET']:
             return RecipeReadSerializer
         return RecipeWriteSerializer
-
-    @action(
-        methods=['GET', 'DELETE'],
-        url_path='favorite',
-        url_name='favorite',
-        detail=True,
-        permission_classes=(IsAuthenticated,),
-    )
-    def favorite(self, request, pk):
-        recipe = get_object_or_404(Recipe, id=pk)
-        serializer = FavoriteSerializer(
-            data={'user': request.user.id, 'recipe': recipe.id}
-        )
-        if request.method == 'GET':
-            serializer.is_valid(raise_exception=True)
-            serializer.save(recipe=recipe, user=request.user)
-            serializer = RecipeWriteSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        favorite = get_object_or_404(
-            Favorite, user=request.user.id, recipe__id=pk
-        )
-        favorite.delete()
-        return Response(
-            f'{recipe.name} - удалено из избранного',
-            status=status.HTTP_204_NO_CONTENT,
-        )
 
     @action(
         methods=['GET'],
@@ -120,22 +101,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'ingredients__name').annotate(
             ingredients_total=Sum('ingredient_amounts__amount')
         )
-        buying_list: dict = {}
+        buying = {}
         for ingredient in ingredients:
             name = ingredient.ingredient.name
             amount = ingredient.amount
             unit = ingredient.ingredient.measurement_unit
-            if name not in buying_list:
-                buying_list[name] = {'amount': amount, 'unit': unit}
+            if name not in buying:
+                buying[name] = {'amount': amount, 'unit': unit}
             else:
-                buying_list[name]['amount'] = (
-                    buying_list[name]['amount'] + amount
+                buying[name]['amount'] = (
+                    buying[name]['amount'] + amount
                 )
         shopping_list = []
-        for item in buying_list:
+        for item in buying:
             shopping_list.append(
-                f'{item} - {buying_list[item]["amount"]}, '
-                f'{buying_list[item]["unit"]}\n'
+                f'{item} - {buying[item]["amount"]}, '
+                f'{buying[item]["unit"]}\n'
             )
         response = HttpResponse(shopping_list, 'Content-Type: text/plain')
         response['Content-Disposition'] = (
@@ -144,6 +125,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response
 
 
-class ShoppingCartView(ListRetrieveModelViewSet):
+class ShoppingCartView(viewsets.ModelViewSet, FavoriteAndCartMixin):
     permission_classes = (IsAuthenticated,)
     http_method_names = ['get', 'delete']
