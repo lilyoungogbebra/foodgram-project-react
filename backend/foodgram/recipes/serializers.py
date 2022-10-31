@@ -113,7 +113,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return ShoppingCart.objects.filter(
             user=request.user, recipe=obj
         ).exists()
-    
+
     @staticmethod
     def create_ingredients(ingredients, recipe):
         ingredients_list = []

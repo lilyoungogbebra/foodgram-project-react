@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -11,12 +11,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .filters import IngredientNameFilter, RecipeFilter
-from .models import Favorite, Ingredient, Recipe, Tag, ShoppingCart, RecipeIngredient
+from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                     ShoppingCart, Tag)
 from .paginators import CustomPageNumberPaginator
 from .permissions import IsRecipeOwnerOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerialiser,
                           RecipeReadSerializer, RecipeWriteSerializer,
-                          TagSerializer, ShoppingCartSerializer)
+                          ShoppingCartSerializer, TagSerializer)
 
 User = get_user_model()
 
