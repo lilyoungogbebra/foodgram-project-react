@@ -5,10 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from django.views.generic import CreateView
-from django.urls import reverse_lazy
 
-from .forms import CreationForm
 from users.models import Follow
 from .permissions import IsAuthorOnly
 from .serializers import FollowSerializer, ShowFollowSerializer
@@ -51,8 +48,3 @@ class CustomUserViewSet(UserViewSet):
         obj = get_object_or_404(Follow, user=user, author__id=id)
         obj.delete()
         return Response('Подписка удалена', status=status.HTTP_204_NO_CONTENT)
-
-class SignUp(CreateView):
-    form_class = CreationForm
-    success_url = reverse_lazy('signup')
-    template_name = 'src/pages/signup'
