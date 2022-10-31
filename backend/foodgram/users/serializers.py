@@ -48,7 +48,7 @@ class FollowSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"errors": 'Вы не можете подписаться на самого себя'}
             )
-        elif follow_exist:
+        if follow_exist:
             raise serializers.ValidationError({"errors": 'Вы уже подписаны'})
         return data
 
