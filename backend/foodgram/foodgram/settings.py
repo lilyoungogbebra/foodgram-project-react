@@ -3,11 +3,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DEBUG = True
+DEBUG = False
 
 SECRET_KEY = os.getenv('SECRET_KEY', default=True)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['51.250.29.141', '127.0.0.1', 'localhost', 'foodgram-practicum.ddns.net', 'web']
 
 INSTALLED_APPS = [
     'users.apps.UsersConfig',
