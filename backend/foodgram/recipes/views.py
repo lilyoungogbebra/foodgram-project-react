@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from reportlab.pdfbase import pdfmetrics
+from django.db.models import Sum
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import mixins, status, viewsets
@@ -111,8 +112,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         final_list = {}
         ingredients = RecipeIngredient.objects.filter(
             recipe__carts__user=request.user).values_list(
-            'ingredient__name', 'ingredient__measurement_unit',
-            'amount', 'recipe__name'
+            'recipe__name',
+            'ingredient__name',
+            'ingredient__measurement_unit').order_by(
+            'ingredients__name').annotate(
+            ingredients_total=Sum('amount')
         )
         for item in ingredients:
             name = item[0]
