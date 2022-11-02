@@ -7,7 +7,7 @@ DEBUG = False
 
 SECRET_KEY = os.getenv('SECRET_KEY', default=True)
 
-ALLOWED_HOSTS = ['158.160.3.218', '127.0.0.1', 'localhost', 'foodgram-practicum.ddns.net', 'web']
+ALLOWED_HOSTS = ['51.250.96.83', '127.0.0.1', 'localhost', 'foodgram-practicum.ddns.net', 'web']
 
 INSTALLED_APPS = [
     'users.apps.UsersConfig',
