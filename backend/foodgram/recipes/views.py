@@ -126,8 +126,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     'amount': item[2],
                     'recipe': item[3]
                 }
-            else:
-                final_list[name]['amount'] += item[2]
         pdfmetrics.registerFont(
             TTFont('Handicraft', 'data/Handicraft.ttf', 'UTF-8'))
         response = HttpResponse(content_type='application/pdf')
