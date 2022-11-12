@@ -1,5 +1,7 @@
+from django.views.generic import CreateView
 from django.contrib.auth import get_user_model
 from djoser.views import UserViewSet
+from django.urls import reverse_lazy
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -7,10 +9,17 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from users.models import Follow
+from .forms import CreationForm
 from .permissions import IsAuthorOnly
 from .serializers import FollowSerializer, ShowFollowSerializer
 
 User = get_user_model()
+
+
+class SignUp(CreateView):
+    form_class = CreationForm
+    success_url = reverse_lazy('posts:index')
+    template_name = 'users/signup.html'
 
 
 class CustomUserViewSet(UserViewSet):
