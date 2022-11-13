@@ -3,9 +3,9 @@ version: '3.3'
 services:
   frontend:
     image: yanleon/foodgram_frontend:latest
-#    build:
-#      context: ../frontend
-#      dockerfile: Dockerfile
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -19,7 +19,7 @@ services:
       - ./.env
 
   web:
-#    image: yanleon/foodgram_backend:latest
+    image: yanleon/foodgram_backend:latest
     build: ../backend/foodgram
     restart: always
     volumes:
